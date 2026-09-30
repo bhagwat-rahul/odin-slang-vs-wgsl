@@ -266,7 +266,7 @@ kernel_destroy :: proc(kernel: ^Kernel) {
 
 // Bindings are passed in WGSL @binding order. Unlike SDL_GPU, read/write
 // access is declared by WGSL rather than split into separate host-side lists.
-dispatch :: proc(device: ^Device, kernel: ^Kernel, buffers: []Buffer, groups_x: u32, groups_y: u32 = 1, groups_z: u32 = 1) -> Error {
+dispatch :: proc(device: ^Device, kernel: ^Kernel, buffers: []Buffer, groups_x: u32, groups_y: u32 = 1, groups_z: u32 = 1, dispatch_count: u32 = 1) -> Error {
 	if device == nil || device.handle == nil || kernel == nil || kernel.pipeline == nil {
 		return .Dispatch_Failed
 	}
@@ -299,7 +299,9 @@ dispatch :: proc(device: ^Device, kernel: ^Kernel, buffers: []Buffer, groups_x: 
 	}
 	wgpu.ComputePassEncoderSetPipeline(compute_pass, kernel.pipeline)
 	wgpu.ComputePassEncoderSetBindGroup(compute_pass, 0, bind_group)
-	wgpu.ComputePassEncoderDispatchWorkgroups(compute_pass, groups_x, groups_y, groups_z)
+	for _ in 0 ..< dispatch_count {
+		wgpu.ComputePassEncoderDispatchWorkgroups(compute_pass, groups_x, groups_y, groups_z)
+	}
 	wgpu.ComputePassEncoderEnd(compute_pass)
 	wgpu.ComputePassEncoderRelease(compute_pass)
 

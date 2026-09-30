@@ -55,19 +55,15 @@ run_slang :: proc(a, b, result: []f32) -> (times: Benchmark_Times) {
 
 	for _, trial in times {
 		start := time.tick_now()
-		for _ in 0 ..< DISPATCH_COUNT {
-			assert(
-				slang.dispatch(
-					&device,
-					&kernel,
-					{a_buffer, b_buffer},
-					{out_buffer},
-					{{&params, size_of(params)}},
-					WORKGROUPS,
-				) ==
-				.None,
-			)
-		}
+		assert(slang.dispatch(
+			&device,
+			&kernel,
+			{a_buffer, b_buffer},
+			{out_buffer},
+			{{&params, size_of(params)}},
+			groups_x = WORKGROUPS,
+			dispatch_count = DISPATCH_COUNT,
+		) == .None)
 		assert(slang.buffer_download(&device, &out_buffer, mem.slice_to_bytes(result)) == .None)
 		times[trial] = time.tick_since(start)
 	}
@@ -122,17 +118,13 @@ run_wgsl :: proc(a, b, result: []f32) -> (times: Benchmark_Times) {
 
 	for _, trial in times {
 		start := time.tick_now()
-		for _ in 0 ..< DISPATCH_COUNT {
-			assert(
-				wgsl.dispatch(
-					&device,
-					&kernel,
-					{a_buffer, b_buffer, out_buffer, params_buffer},
-					WORKGROUPS,
-				) ==
-				.None,
-			)
-		}
+		assert(wgsl.dispatch(
+			&device,
+			&kernel,
+			{a_buffer, b_buffer, out_buffer, params_buffer},
+			groups_x = WORKGROUPS,
+			dispatch_count = DISPATCH_COUNT,
+		) == .None)
 		assert(wgsl.buffer_download(&device, &out_buffer, mem.slice_to_bytes(result)) == .None)
 		times[trial] = time.tick_since(start)
 	}

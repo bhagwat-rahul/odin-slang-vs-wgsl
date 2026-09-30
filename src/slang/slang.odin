@@ -338,6 +338,7 @@ dispatch :: proc(
 	groups_x: u32,
 	groups_y: u32 = 1,
 	groups_z: u32 = 1,
+	dispatch_count: u32 = 1,
 ) -> Error {
 	if device == nil || device.handle == nil || kernel == nil || kernel.handle == nil {
 		return .Command_Creation_Failed
@@ -392,7 +393,9 @@ dispatch :: proc(
 			u32(len(readonly_handles)),
 		)
 	}
-	sdl3.DispatchGPUCompute(compute_pass, groups_x, groups_y, groups_z)
+	for _ in 0 ..< dispatch_count {
+		sdl3.DispatchGPUCompute(compute_pass, groups_x, groups_y, groups_z)
+	}
 	sdl3.EndGPUComputePass(compute_pass)
 
 	if !sdl3.SubmitGPUCommandBuffer(command) {
